@@ -1,0 +1,15 @@
+<idea-plugin url="https://github.com/dev-weiqi/animated-webp-viewer">
+    <id>io.github.devweiqi.animated-webp-viewer</id>
+    <name>Animated WebP Viewer</name>
+    <vendor email="dev.weiqi@gmail.com" url="https://github.com/dev-weiqi">dev-weiqi</vendor>
+    <description><![CDATA[
+        <p>Preview animated WebP directly in Android Studio editor tabs. Static WebP continues to use the built-in image editor.</p>
+        <p>Includes play/pause, transparent backgrounds, a stable frame counter, and original image dimensions.
+        No JCEF required. Works with animated WebP files in any project directory.</p>
+    ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>intellij.webp</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="io.github.devweiqi.animatedwebpviewer.WebpEditorProvider"/>
+    </extensions>
+</idea-plugin>
