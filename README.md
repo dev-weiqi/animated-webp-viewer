@@ -12,7 +12,7 @@ Play animated WebP directly in Android Studio editor tabs, including files outsi
 
 ## Install
 
-Download the ZIP from [Releases](https://github.com/dev-weiqi/animated-webp-viewer/releases). In Android Studio, open **Settings → Plugins → gear icon → Install Plugin from Disk**, choose `animated-webp-viewer-1.0.0.zip`, then restart.
+Download the ZIP from [Releases](https://github.com/dev-weiqi/animated-webp-viewer/releases). In Android Studio, open **Settings → Plugins → gear icon → Install Plugin from Disk**, choose `animated-webp-viewer-1.0.1.zip`, then restart.
 
 Open an animated `.webp` file using the IDE's normal open action. If the file was already open before installation, close and reopen its editor tab.
 

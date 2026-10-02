@@ -319,17 +319,23 @@ private fun checkToolbar() {
                 panel.setSize(width, 600)
                 repeat(3) { layout(panel) }
                 val bounds = SwingUtilities.convertRectangle(playback.parent, playback.bounds, panel)
-                check(kotlin.math.abs(bounds.centerX - width / 2.0) <= 1) { "Playback must stay centered at $width" }
                 check(bounds.y >= 0 && bounds.maxY <= panel.height)
                 check(metadata.width > 0)
                 val slider = components(panel).filterIsInstance<javax.swing.JSlider>().single()
                 val sliderBounds = SwingUtilities.convertRectangle(slider.parent, slider.bounds, panel)
-                check(sliderBounds.y >= bounds.maxY && sliderBounds.maxY <= panel.height)
-                check(kotlin.math.abs(sliderBounds.centerX - width / 2.0) <= 1)
+                check(sliderBounds.x >= bounds.maxX && kotlin.math.abs(sliderBounds.centerY - bounds.centerY) <= 1) { "Slider must follow the frame counter on the same row" }
+                check(kotlin.math.abs((bounds.x + sliderBounds.maxX) / 2 - width / 2.0) <= 1) { "Playback group must stay centered" }
+                if (width == 1200) check(playback.parent.height == com.intellij.util.ui.JBUI.scale(36)) { "Slider must not add a toolbar row" }
             }
             val canvas = components(panel).filterIsInstance<CheckerboardPreview>().single()
 
             fun click(name: String) = components(panel).filterIsInstance<JButton>().single { it.toolTipText == name }.doClick(0)
+            val toolButtons = components(panel).filterIsInstance<JButton>().filter { it.toolTipText != null }
+            toolButtons.filter { it.icon != null }.forEach {
+                check(it.preferredSize.width == com.intellij.util.ui.JBUI.scale(30)) { "IDE button minimum widths must not spread the toolbar" }
+            }
+            val actualSize = toolButtons.single { it.toolTipText == "1:1" }
+            check(actualSize.getFontMetrics(actualSize.font).stringWidth(actualSize.text) <= actualSize.width - actualSize.insets.left - actualSize.insets.right)
             click("1:1")
             check(canvas.zoom == 1.0 && canvas.preferredSize == java.awt.Dimension(813, 813))
             click("Zoom in")

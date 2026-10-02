@@ -68,7 +68,9 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
                     margin = JBUI.emptyInsets()
                     isContentAreaFilled = false
                     isBorderPainted = false
-                    preferredSize = Dimension(maxOf(JBUI.scale(30), preferredSize.width), JBUI.scale(28))
+                    border = JBUI.Borders.empty()
+                    val width = if (icon == null) maxOf(JBUI.scale(36), getFontMetrics(font).stringWidth(label) + JBUI.scale(12)) else JBUI.scale(30)
+                    preferredSize = Dimension(width, JBUI.scale(28))
                     addActionListener { action() }
                 }
             )
@@ -86,7 +88,7 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
         val toolbar = object : JPanel(null) {
             private fun rows(): Int {
                 val side = maxOf(tools.preferredSize.width, metadata.preferredSize.width)
-                return if (width >= 2 * side + maxOf(JBUI.scale(224), controls.preferredSize.width) + JBUI.scale(24)) {
+                return if (width >= 2 * side + controls.preferredSize.width + JBUI.scale(224 + 32)) {
                     1
                 } else if (width >= tools.preferredSize.width + metadata.preferredSize.width + JBUI.scale(24)) {
                     2
@@ -95,16 +97,18 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
                 }
             }
 
-            override fun getPreferredSize(): Dimension = Dimension(0, JBUI.scale(36 * rows() + 24))
+            override fun getPreferredSize(): Dimension = Dimension(0, JBUI.scale(36 * rows()))
 
             override fun doLayout() {
                 val gap = JBUI.scale(8)
                 val height = JBUI.scale(28)
                 val row = JBUI.scale(36)
                 tools.setBounds(gap, JBUI.scale(4), tools.preferredSize.width, height)
-                controls.setBounds((width - controls.preferredSize.width) / 2, if (rows() == 1) JBUI.scale(4) else row + JBUI.scale(4), controls.preferredSize.width, height)
-                seek.setBounds((width - JBUI.scale(224)) / 2, controls.y + height, JBUI.scale(224), JBUI.scale(24))
-                metadata.setBounds(maxOf(gap, width - metadata.preferredSize.width - gap), if (rows() == 3) 2 * row + JBUI.scale(28) else JBUI.scale(4), minOf(metadata.preferredSize.width, maxOf(0, width - 2 * gap)), height)
+                val sliderWidth = minOf(JBUI.scale(224), maxOf(0, width - controls.preferredSize.width - 3 * gap))
+                val playbackWidth = controls.preferredSize.width + gap + sliderWidth
+                controls.setBounds((width - playbackWidth) / 2, if (rows() == 1) JBUI.scale(4) else row + JBUI.scale(4), controls.preferredSize.width, height)
+                seek.setBounds(controls.x + controls.width + gap, controls.y + JBUI.scale(2), sliderWidth, JBUI.scale(24))
+                metadata.setBounds(maxOf(gap, width - metadata.preferredSize.width - gap), if (rows() == 3) 2 * row + JBUI.scale(4) else JBUI.scale(4), minOf(metadata.preferredSize.width, maxOf(0, width - 2 * gap)), height)
             }
         }
         toolbar.add(tools)
