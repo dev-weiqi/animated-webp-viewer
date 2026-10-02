@@ -4,7 +4,7 @@ Play animated WebP directly in Android Studio editor tabs, including files outsi
 
 ![Animated WebP Viewer preview](docs/preview.png)
 
-* Play and pause animations without JCEF.
+* Play and pause animations without JCEF. Drag the frame slider to pause on a frame, then resume from there.
 * Preview transparency on a checkerboard.
 * Fit images within the available space while preserving their aspect ratio.
 * Show original dimensions and a fixed-width frame counter.
@@ -12,7 +12,7 @@ Play animated WebP directly in Android Studio editor tabs, including files outsi
 
 ## Install
 
-Download the ZIP from [Releases](https://github.com/dev-weiqi/animated-webp-viewer/releases). In Android Studio, open **Settings → Plugins → gear icon → Install Plugin from Disk**, choose `animated-webp-viewer-0.1.0.zip`, then restart.
+Download the ZIP from [Releases](https://github.com/dev-weiqi/animated-webp-viewer/releases). In Android Studio, open **Settings → Plugins → gear icon → Install Plugin from Disk**, choose `animated-webp-viewer-1.0.0.zip`, then restart.
 
 Open an animated `.webp` file using the IDE's normal open action. If the file was already open before installation, close and reopen its editor tab.
 
@@ -24,7 +24,7 @@ Build with JDK 21 using `./gradlew buildPlugin`. The build uses `/Applications/A
 
 Run `./gradlew check verifyPluginProjectConfiguration verifyPlugin` for automated checks and compatibility verification.
 
-Requires IntelliJ Platform build 261 or later and the bundled WebP plugin. The initial target is Android Studio 2026.1.4. Automated checks do not replace testing editor selection in a running IDE.
+Requires IntelliJ Platform build 261 or later and the bundled WebP plugin. The initial target is Android Studio 2026.2.1. Automated checks do not replace testing editor selection in a running IDE.
 
 ## Limits
 

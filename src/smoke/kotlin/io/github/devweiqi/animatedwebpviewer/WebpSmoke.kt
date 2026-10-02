@@ -106,13 +106,21 @@ private fun checkPlayback(animation: WebpAnimation) {
     lateinit var button: JButton
     lateinit var position: JLabel
     val changed = CountDownLatch(1)
+    lateinit var seek: javax.swing.JSlider
     SwingUtilities.invokeAndWait {
         player = WebpPlaybackPanel(animation = animation.copy(loopCount = 0))
         check(components(player).filterIsInstance<JLabel>().single { it.name == "metadata" }.text.startsWith("4×2 WEBP (32-bit color)"))
         val controls = components(player).filterIsInstance<Container>().single { it.name == "playback" }
         button = controls.components.filterIsInstance<JButton>().single()
         position = controls.components.filterIsInstance<JLabel>().single()
-        button.doClick(0)
+        seek = components(player).filterIsInstance<javax.swing.JSlider>().single()
+        seek.value = 2
+        check(button.text == "Play" && position.text == "2 / 3")
+        seek.valueIsAdjusting = true
+        seek.value = 3
+        seek.valueIsAdjusting = false
+        check(position.text == "3 / 3")
+        seek.value = 1
         check(button.text == "Play")
     }
     Thread.sleep(120)
@@ -125,7 +133,7 @@ private fun checkPlayback(animation: WebpAnimation) {
     check(changed.await(2, TimeUnit.SECONDS)) { "Resumed animation did not advance" }
     SwingUtilities.invokeAndWait {
         player.dispose()
-        check(!button.isEnabled)
+        check(!button.isEnabled && !seek.isEnabled)
     }
     lateinit var finite: WebpPlaybackPanel
     val completed = CountDownLatch(1)
@@ -314,6 +322,10 @@ private fun checkToolbar() {
                 check(kotlin.math.abs(bounds.centerX - width / 2.0) <= 1) { "Playback must stay centered at $width" }
                 check(bounds.y >= 0 && bounds.maxY <= panel.height)
                 check(metadata.width > 0)
+                val slider = components(panel).filterIsInstance<javax.swing.JSlider>().single()
+                val sliderBounds = SwingUtilities.convertRectangle(slider.parent, slider.bounds, panel)
+                check(sliderBounds.y >= bounds.maxY && sliderBounds.maxY <= panel.height)
+                check(kotlin.math.abs(sliderBounds.centerX - width / 2.0) <= 1)
             }
             val canvas = components(panel).filterIsInstance<CheckerboardPreview>().single()
 
@@ -351,6 +363,11 @@ private fun writePreview(input: String, output: String) {
         for (key in listOf("Label.foreground", "Button.foreground")) javax.swing.UIManager.put(key, foreground)
         for (key in listOf("Label.font", "Button.font")) javax.swing.UIManager.put(key, java.awt.Font("SansSerif", java.awt.Font.PLAIN, 13))
         val panel = WebpPlaybackPanel(animation, Files.size(java.nio.file.Path.of(input)))
+        components(panel).filterIsInstance<javax.swing.JSlider>().forEach {
+            it.setUI(com.intellij.ide.ui.laf.darcula.ui.DarculaSliderUI(it))
+            it.isOpaque = false
+            it.value = maxOf(1, animation.frames.size / 2)
+        }
         panel.setSize(1120, 640)
 
         fun layout(container: Container) {

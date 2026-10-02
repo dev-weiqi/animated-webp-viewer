@@ -12,6 +12,7 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JSlider
 import javax.swing.SwingConstants
 import javax.swing.Timer
 
@@ -19,6 +20,8 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
     private val preview = CheckerboardPreview()
     private val toggle = JButton("Pause")
     private val position = JLabel()
+    private val seek = JSlider(1, animation.frames.size, 1)
+    private var updatingSeek = false
     private var frameIndex = 0
     private var completedLoops = 0
     private var finished = false
@@ -39,6 +42,22 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
         position.preferredSize = Dimension(maxOf(JBUI.scale(72), counterWidth), metrics.height)
         position.horizontalAlignment = SwingConstants.RIGHT
         controls.add(position)
+        seek.accessibleContext.accessibleName = "Animation frame"
+        seek.isEnabled = animation.frames.size > 1
+        seek.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mousePressed(event: java.awt.event.MouseEvent) {
+                if (!disposed) pause()
+            }
+        })
+        seek.addChangeListener {
+            if (!updatingSeek && !disposed) {
+                pause()
+                frameIndex = seek.value - 1
+                completedLoops = 0
+                finished = false
+                showFrame()
+            }
+        }
         val tools = JPanel(FlowLayout(FlowLayout.LEADING, JBUI.scale(2), 0))
 
         fun tool(label: String, icon: javax.swing.Icon? = null, action: () -> Unit) {
@@ -46,10 +65,10 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
                 JButton(if (icon == null) label else "", icon).apply {
                     toolTipText = label
                     accessibleContext.accessibleName = label
-                    preferredSize = JBUI.size(30, 28)
                     margin = JBUI.emptyInsets()
                     isContentAreaFilled = false
                     isBorderPainted = false
+                    preferredSize = Dimension(maxOf(JBUI.scale(30), preferredSize.width), JBUI.scale(28))
                     addActionListener { action() }
                 }
             )
@@ -67,7 +86,7 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
         val toolbar = object : JPanel(null) {
             private fun rows(): Int {
                 val side = maxOf(tools.preferredSize.width, metadata.preferredSize.width)
-                return if (width >= 2 * side + controls.preferredSize.width + JBUI.scale(24)) {
+                return if (width >= 2 * side + maxOf(JBUI.scale(224), controls.preferredSize.width) + JBUI.scale(24)) {
                     1
                 } else if (width >= tools.preferredSize.width + metadata.preferredSize.width + JBUI.scale(24)) {
                     2
@@ -76,7 +95,7 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
                 }
             }
 
-            override fun getPreferredSize(): Dimension = Dimension(0, JBUI.scale(36 * rows()))
+            override fun getPreferredSize(): Dimension = Dimension(0, JBUI.scale(36 * rows() + 24))
 
             override fun doLayout() {
                 val gap = JBUI.scale(8)
@@ -84,11 +103,13 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
                 val row = JBUI.scale(36)
                 tools.setBounds(gap, JBUI.scale(4), tools.preferredSize.width, height)
                 controls.setBounds((width - controls.preferredSize.width) / 2, if (rows() == 1) JBUI.scale(4) else row + JBUI.scale(4), controls.preferredSize.width, height)
-                metadata.setBounds(maxOf(gap, width - metadata.preferredSize.width - gap), if (rows() == 3) 2 * row + JBUI.scale(4) else JBUI.scale(4), minOf(metadata.preferredSize.width, maxOf(0, width - 2 * gap)), height)
+                seek.setBounds((width - JBUI.scale(224)) / 2, controls.y + height, JBUI.scale(224), JBUI.scale(24))
+                metadata.setBounds(maxOf(gap, width - metadata.preferredSize.width - gap), if (rows() == 3) 2 * row + JBUI.scale(28) else JBUI.scale(4), minOf(metadata.preferredSize.width, maxOf(0, width - 2 * gap)), height)
             }
         }
         toolbar.add(tools)
         toolbar.add(controls)
+        toolbar.add(seek)
         toolbar.add(metadata)
         toolbar.border = JBUI.Borders.customLineBottom(com.intellij.ui.JBColor.border())
         toolbar.addComponentListener(object : java.awt.event.ComponentAdapter() {
@@ -130,6 +151,13 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
         preview.icon = ImageIcon(animation.frames[frameIndex].image)
         preview.getAccessibleContext().accessibleName = "WebP frame ${frameIndex + 1} of ${animation.frames.size}"
         position.text = "${frameIndex + 1} / ${animation.frames.size}"
+        updatingSeek = true
+        try {
+            seek.value = frameIndex + 1
+            seek.toolTipText = "Frame ${frameIndex + 1} of ${animation.frames.size}"
+        } finally {
+            updatingSeek = false
+        }
     }
 
     private fun scheduleFrame() {
@@ -158,6 +186,7 @@ class WebpPlaybackPanel(private val animation: WebpAnimation, fileSize: Long = 0
         disposed = true
         timer.stop()
         toggle.isEnabled = false
+        seek.isEnabled = false
         preview.icon = null
         animation.frames.forEach { it.image.flush() }
     }
