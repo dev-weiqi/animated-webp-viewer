@@ -1,6 +1,5 @@
 package io.github.devweiqi.animatedwebpviewer
 
-import com.android.tools.adtui.webp.WebpMetadata
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -21,7 +20,6 @@ private val PREVIEW_LIGHT = JBColor(Color(235, 235, 235), Color(65, 65, 65))
 private val PREVIEW_DARK = JBColor(Color(210, 210, 210), Color(50, 50, 50))
 
 fun decodeWebpPreview(bytes: ByteArray): WebpAnimation {
-    WebpMetadata.ensureWebpRegistered()
     if (bytes.size > 32 * 1024 * 1024) throw IOException("WebP exceeds the 32 MiB preview limit")
     if (bytes.size < 12 ||
         String(bytes, 0, 4, Charsets.US_ASCII) != "RIFF" ||
